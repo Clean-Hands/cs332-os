@@ -575,13 +575,14 @@ sys_sbrk(void *arg)
     sysarg_t increment_arg;
     kassert(fetch_arg(arg, 1, &increment_arg));
     
-    // convert arguments to their proper types
+    // convert argument to its proper types
     size_t increment = (int)increment_arg;
 
     // get current process
     struct proc *p = proc_current();
     kassert(p);
 
+    // extend the heap's memregion
     vaddr_t old_bound;
     if (memregion_extend(p->as.heap, increment, &old_bound) != ERR_OK) {
         return ERR_NOMEM;
