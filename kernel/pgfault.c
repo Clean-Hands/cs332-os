@@ -18,34 +18,23 @@ handle_page_fault(vaddr_t fault_addr, int present, int write, int user) {
     // turn on interrupt now that we have the fault address 
     intr_set_level(INTR_ON);
 
-    if (fault_addr > USTACK_UPPERBOUND - pg_size || fault_addr < USTACK_LOWERBOUND) {
-        proc_exit(-1);
-    }
-
-    paddr_t paddr;
-
-    if (pmem_alloc(&paddr) != ERR_OK) {
-        return;
-    }
-
-    // fault_addr = kmap_p2v(paddr);
-    
-    // get parent process
+    // get current process
     struct proc *p = proc_current();
     kassert(p);
 
+    // if it is outside the stack or heap, exit the process
+    if ((fault_addr > USTACK_UPPERBOUND - pg_size || fault_addr < USTACK_LOWERBOUND) &&
+        (fault_addr > p->as.heap->end || fault_addr < p->as.heap->start)) {
+        proc_exit(-1);
+    }
+    
+    // allocate some physical memory and map it to a vaddr
+    paddr_t paddr;
+    if (pmem_alloc(&paddr) != ERR_OK) {
+        proc_exit(-1);
+    }
     vpmap_map(p->as.vpmap, fault_addr, paddr, 1, MEMPERM_URW);
 
+    // clear the memory location
     memset((void*) fault_addr, 0, pg_size);
-
-
-    if (user) {
-        // kprintf("fault address %p, present %d, write %d, user %d\n", fault_addr, present, write, user);
-        return;
-        // proc_exit(0);
-        // panic("unreachable");
-    } else {
-        // kprintf("fault addr %p\n", fault_addr);
-        panic("Kernel error in page fault handler\n");
-    }
 }
