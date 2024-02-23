@@ -23,7 +23,7 @@ handle_page_fault(vaddr_t fault_addr, int present, int write, int user) {
     kassert(p);
 
     // if it is outside the stack or heap, exit the process
-    if ((fault_addr > USTACK_UPPERBOUND - pg_size || fault_addr < USTACK_LOWERBOUND) &&
+    if ((fault_addr >= USTACK_UPPERBOUND - pg_size || fault_addr < USTACK_LOWERBOUND) &&
         (fault_addr > p->as.heap->end || fault_addr < p->as.heap->start)) {
         proc_exit(-1);
     }
