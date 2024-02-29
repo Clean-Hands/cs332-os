@@ -9,6 +9,7 @@ cat(int fd)
     int n;
 
    while((n = read(fd, buf, sizeof(buf))) > 0) {
+        printf("read %d\n", fd);
         if (write(1, buf, n) != n) {
             printf("cat: write error\n");
             exit(-1);
@@ -23,20 +24,22 @@ cat(int fd)
 int
 main(int argc, char *argv[])
 {
-    int fd, i;
+    // int fd, i;
 
-    if(argc <= 1){
+    printf("argc: %d\nargv: %s\nargv p: %p\n", argc, argv[0], argv);
+
+    // if(argc <= 1){
         cat(0);
         exit(0);
-    }
+    // }
 
-    for(i = 1; i < argc; i++){
-        if((fd = open(argv[i], FS_RDONLY, 0)) < 0){
-            printf("cat: cannot open file %s\n", argv[i]);
-            exit(-1);
-        }
-        cat(fd);
-        close(fd);
-    }
+    // for(i = 1; i < argc; i++){
+    //     if((fd = open(argv[i], FS_RDONLY, 0)) < 0){
+    //         printf("cat: cannot open file %s\n", argv[i]);
+    //         exit(-1);
+    //     }
+    //     cat(fd);
+    //     close(fd);
+    // }
     exit(0);
 }

@@ -60,6 +60,8 @@ tf_proc(struct trapframe *tf, struct proc *p, uint64_t entry_point, uint64_t sta
     tf->rsp = stack_ptr;
     tf->rip = entry_point;
     // also need to set up arguments for new process
+    // kprintf("stackptr: %p\nsp: %p\npaddr: %p\n0: %d\n1: %d\n2: %p\n", stack_ptr, sp, paddr, sp[0], sp[1], sp[2]);
+    // tf->rdi = 8;
     tf->rdi = sp[1];
     tf->rsi = sp[2];
 }

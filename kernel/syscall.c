@@ -165,6 +165,7 @@ sys_fork(void *arg)
 static sysret_t
 sys_spawn(void *arg)
 {
+    // kprintf("start sys_spawn\n");
     int argc = 0;
     sysarg_t args;
     size_t len;
@@ -197,9 +198,14 @@ sys_spawn(void *arg)
     }
     argv[argc] = NULL;
 
+    for (int i = 0; i < argc; i++) {
+        kprintf("%s\n", argv[i]);
+    }
+
     if ((err = proc_spawn(argv[0], argv, &p)) != ERR_OK) {
         return err;
     }
+    // kprintf("end of sys_spawn\n");
     return p->pid;
 }
 

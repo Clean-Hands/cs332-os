@@ -542,9 +542,129 @@ stack_setup(struct proc *p, char **argv, vaddr_t* ret_stackptr)
     stackptr = kmap_p2v(paddr) + pg_size;
 
     /* Your Code Here.  */
+    
     // allocate space for fake return address, argc, argv
     // remove following line when you actually set up the stack
-    stackptr -= 3 * sizeof(void*);
+
+    
+    
+
+    int length = 0; // = (*(&argv + 1) - argv)/sizeof(char *);
+
+    char **argv_copy = argv;
+
+    while (argv_copy[0] != NULL) {
+
+        // stackptr -= sizeof(char *);
+
+
+        length++;
+        kprintf("length: %d\n", length);
+        // sp[0] = arg_copy[0];
+        // strcpy(sp[0], arg_copy[0]);
+
+        argv_copy++;
+    }
+
+    uint64_t **user_argv[10];
+
+    if (length > 1) {
+
+        uint64_t *sp;
+
+        argv_copy = argv;
+
+        // move stack pointer by argv_bytes
+        int total_size = 0;
+        for (int i = 0; i < length; i++) {
+
+            total_size += (strlen(argv[i]) * sizeof(char));
+            // sp = (uint64_t *)USTACK_ADDR(stackptr);
+
+            // kprintf("stackptr: %p\nsp: %p\n", stackptr, sp);
+
+            // char *argv_copy_i = argv_copy[i];
+            // strcpy()
+            // while (argv_copy_i != NULL) {
+            //     stackptr -= sizeof(char);
+            //     argv_copy_i++;
+            // }
+            
+            // memcpy(&sp, &argv_copy[i], sizeof(char *));
+
+            // user_argv[i] = &sp;
+
+            // kprintf("stackptr: %p\nsp: %p\n", stackptr, sp);
+        }
+        sp = (uint64_t *)USTACK_ADDR(stackptr);
+        total_size += 8 - (total_size % 8); 
+        stackptr -= total_size * sizeof(char);
+
+        // kprintf("stackptr: %p\nsp: %p\n", stackptr, sp);
+
+        // char *argv_copy_i = argv_copy[i];
+
+        // fill in the space with chars
+        for (int i = 0; i < length; i++) {
+            strcpy((char *)sp, argv[i]);
+            kprintf("args: %s\n", argv[i]);
+            kprintf("args: %s\n", sp);
+            user_argv[i] = &sp;
+            sp -= strlen(argv[i]) * sizeof(char);
+        }
+
+        uint64_t * sp2_value = (uint64_t *)USTACK_ADDR(stackptr);
+
+        // store the address of the start of each argument
+        for (int i = 0; i < length; i++) {
+            sp = (uint64_t *)USTACK_ADDR(stackptr);
+            memcpy(&sp, user_argv[i], sizeof(uint64_t));
+            stackptr -= sizeof(uint64_t);
+        }
+
+        stackptr -= 3 * sizeof(void *);
+
+        sp = (uint64_t *) stackptr;
+
+        // int argc = 2;
+        // strcpy((char *)&stackptr, (argv[2]));cag
+        sp[0] = 0;
+        sp[1] = 2;
+        // memcpy(&sp[2], argv[0], strlen(argv[0]));
+        // memcpy(&sp[2], argv[0], strlen(argv[0]));
+        sp[2] = (uint64_t)sp2_value;
+        // kprintf("weeee: %d\n", (uint64_t)argv);
+        // sp[3] = (uint64_t)argv[1];
+        // sp[4] = (uint64_t)argv[2];
+        
+        // memcpy(sp &(argv[2]), sizeof(char *));
+        // stackptr -= sizeof(char *);
+        // // strcpy((char *)&stackptr, (argv[1]));
+        // memcpy(&stackptr, &(argv[1]), sizeof(char *));
+        // stackptr -= sizeof(char *);
+        // // strcpy((char *)&stackptr, (argv[0]));
+        // memcpy(&stackptr, &(argv[0]), sizeof(char *));
+        // stackptr -= sizeof(char *);
+        // memcpy(&stackptr, &argc, sizeof(int *));
+        // stackptr -= sizeof(int *);
+        // memset(&stackptr, 0, sizeof(void *));
+        // // memset(&stackptr, 1234, sizeof(void *));
+        // stackptr -= sizeof(void *);
+    } else {
+        stackptr -= 3 * sizeof(void *);
+    }
+
+
+    // *ret_stackptr = USTACK_ADDR(stackptr); 
+    // kprintf("%p\n", ret_stackptr);
+
+
+    // int length = *(&argv + 1) - argv;
+    // // char **argvTemp = argv;
+    // for (int i = 0; i < length; i++) {
+    //     memcpy(&stackptr, argv[i], sizeof(char *));
+    //     // argvTemp = &argvTemp[i];
+    // }
 
     // translates stackptr from kernel virtual address to user stack address
     *ret_stackptr = USTACK_ADDR(stackptr); 
