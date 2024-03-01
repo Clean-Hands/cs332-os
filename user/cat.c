@@ -44,7 +44,7 @@ main(int argc, char *argv[])
     //     // }
     // }
     printf("argv[0]: %s\n", (char *)0xffffff7fffffdfe0);
-    printf("argv[1]: %s\n", argv_1);
+    // printf("argv[1]: %s\n", argv_1);
 
     // if(argc <= 1){
         // cat(0);
