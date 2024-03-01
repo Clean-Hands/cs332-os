@@ -38,8 +38,12 @@ main(int argc, char *argv[])
     //     cat(fd);
     //     close(fd);
     // }
-    mkdir("test");
-    // mkdir("test/test2");
+    int retval = rmdir("test");
+    if (retval != ERR_OK) {
+        printf("error: %d", retval);
+        exit(retval);
+    }
+    
 
     exit(0);
 }

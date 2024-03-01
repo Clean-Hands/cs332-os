@@ -38,8 +38,8 @@ main(int argc, char *argv[])
     //     cat(fd);
     //     close(fd);
     // }
-    mkdir("test");
-    // mkdir("test/test2");
+    chdir("test");
+    
 
     exit(0);
 }
