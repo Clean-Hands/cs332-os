@@ -549,7 +549,7 @@ stack_setup(struct proc *p, char **argv, vaddr_t* ret_stackptr)
     
     
 
-    int length = 0; // = (*(&argv + 1) - argv)/sizeof(char *);
+    int argc = 0; // = (*(&argv + 1) - argv)/sizeof(char *);
 
     char **argv_copy = argv;
 
@@ -558,25 +558,26 @@ stack_setup(struct proc *p, char **argv, vaddr_t* ret_stackptr)
         // stackptr -= sizeof(char *);
 
 
-        length++;
-        kprintf("length: %d\n", length);
+        argc++;
+        kprintf("argc: %d\n", argc);
         // sp[0] = arg_copy[0];
         // strcpy(sp[0], arg_copy[0]);
 
         argv_copy++;
     }
 
-    uint64_t *user_argv[10]; // kmalloc
+    // uint64_t *user_argv[10]; // kmalloc
+    uint64_t **user_argv = kmalloc(sizeof(uint64_t *) * argc);
 
-    if (length > 1) {
+    if (argc > 1) {
 
         uint64_t *sp;
 
         argv_copy = argv;
 
-        // move stack pointer by argv_bytes
+        // move stack pointer by argv bytes
         int total_size = 0;
-        for (int i = 0; i < length; i++) {
+        for (int i = 0; i < argc; i++) {
 
             total_size += strlen(argv[i]) + 1;
             // sp = (uint64_t *)USTACK_ADDR(stackptr);
@@ -596,7 +597,8 @@ stack_setup(struct proc *p, char **argv, vaddr_t* ret_stackptr)
 
             // kprintf("stackptr: %p\nsp: %p\n", stackptr, sp);
         }
-        sp = (uint64_t *)USTACK_ADDR(stackptr);
+        sp = (uint64_t *)stackptr;
+        // sp = (uint64_t *)USTACK_ADDR(stackptr);
         total_size += 8 - (total_size % 8); 
         stackptr -= total_size * sizeof(char);
 
@@ -605,7 +607,7 @@ stack_setup(struct proc *p, char **argv, vaddr_t* ret_stackptr)
         // char *argv_copy_i = argv_copy[i];
 
         // fill in the space with chars
-        for (int i = 0; i < length; i++) {
+        for (int i = 0; i < argc; i++) {
             sp -= (strlen(argv[i]) + 1) * sizeof(char);
             strcpy((char *)sp, argv[i]);
             kprintf("args: %s, %s\n", argv[i], sp);
@@ -615,6 +617,10 @@ stack_setup(struct proc *p, char **argv, vaddr_t* ret_stackptr)
             user_argv[i] = sp;
         }
 
+        sp = (uint64_t *)stackptr;
+        // sp = (uint64_t *)USTACK_ADDR(stackptr);
+        stackptr -= argc * sizeof(char *);
+
         // uint64_t *sp_copy = sp;
             // sp_copy++;
 
@@ -623,14 +629,15 @@ stack_setup(struct proc *p, char **argv, vaddr_t* ret_stackptr)
         //     sp_copy += (strlen((char *)sp_copy) + 1) * sizeof(char *);
         // }
 
+        
 
         // store the address of the start of each argument
-        for (int i = length-1; i >= 0; i--) {
+        for (int i = argc-1; i >= 0; i--) {
             kprintf("argv[0]: %s\n", (char *)0xffffff7fffffdfe0);
-            stackptr -= sizeof(uint64_t);
-            sp = (uint64_t *)USTACK_ADDR(stackptr);
+            // sp = (uint64_t *)USTACK_ADDR(stackptr);
             kprintf("user_argv: %p\n", user_argv[i]);
-            memcpy(sp, user_argv[i], sizeof(uint64_t));
+            memcpy(sp, user_argv[i], sizeof(char *));
+            sp -= sizeof(char *);
         }
 
         kprintf("argv[0]: %s\n", (char *)0xffffff7fffffdfe0);
@@ -680,9 +687,9 @@ stack_setup(struct proc *p, char **argv, vaddr_t* ret_stackptr)
     // kprintf("%p\n", ret_stackptr);
 
 
-    // int length = *(&argv + 1) - argv;
+    // int argc = *(&argv + 1) - argv;
     // // char **argvTemp = argv;
-    // for (int i = 0; i < length; i++) {
+    // for (int i = 0; i < argc; i++) {
     //     memcpy(&stackptr, argv[i], sizeof(char *));
     //     // argvTemp = &argvTemp[i];
     // }
