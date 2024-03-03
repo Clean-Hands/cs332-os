@@ -571,7 +571,7 @@ stack_setup(struct proc *p, char **argv, vaddr_t* ret_stackptr)
 
     if (argc > 1) {
 
-        uint64_t *sp;
+        char *sp;
 
         argv_copy = argv;
 
@@ -581,7 +581,7 @@ stack_setup(struct proc *p, char **argv, vaddr_t* ret_stackptr)
             total_size += strlen(argv[i]) + 1;
         }
 
-        sp = (uint64_t *)stackptr;
+        sp = (char *)stackptr;
         // sp = (uint64_t *)USTACK_ADDR(stackptr);
         total_size += 8 - (total_size % 8); 
         stackptr -= total_size * sizeof(char);
@@ -592,8 +592,8 @@ stack_setup(struct proc *p, char **argv, vaddr_t* ret_stackptr)
 
         // fill in the space with chars
         for (int i = 0; i < argc; i++) {
-            sp -= (strlen(argv[i]) + 1);
-            strcpy((char *)sp, argv[i]);
+            sp -= (strlen(argv[i]) + 1) * sizeof(char);
+            strcpy(sp, argv[i]);
             kprintf("args: %s, %s\n", argv[i], sp);
             // kprintf("argv[0]: %s\n", (char *)0xffffff7fffffdfe0);
 
@@ -602,7 +602,7 @@ stack_setup(struct proc *p, char **argv, vaddr_t* ret_stackptr)
             kprintf("added 1 to user_argv\n");
         }
 
-        sp = (uint64_t *)stackptr;
+        sp = (char *)stackptr;
         // sp = (uint64_t *)USTACK_ADDR(stackptr);
         stackptr -= (argc + 1) * sizeof(char *);
 
@@ -623,7 +623,7 @@ stack_setup(struct proc *p, char **argv, vaddr_t* ret_stackptr)
         sp -= 1;
         for (int i = argc-1; i >= 0; i--) {
             // sp = (uint64_t *)USTACK_ADDR(user_argv[i]);
-            sp = (uint64_t *)USTACK_ADDR((vaddr_t)user_argv[i]);
+            sp = (char *)USTACK_ADDR((vaddr_t)user_argv[i]);
 
             // kprintf("user_argv: %p\n", user_argv[i]);
             // memcpy(sp, user_argv[i], sizeof(char *));
@@ -632,14 +632,12 @@ stack_setup(struct proc *p, char **argv, vaddr_t* ret_stackptr)
 
         // T4.
 
-        // kprintf("argv[0]: %s\n", (char *)0xffffff7fffffdfe0);
 
         uint64_t *sp2_value = (uint64_t *)USTACK_ADDR(stackptr);
 
         stackptr -= 3 * sizeof(void *);
 
         uint64_t *final_sp = (uint64_t *)stackptr;
-        // kprintf("argv[0]: %s\n", (char *)0xffffff7fffffdfe0);
 
 
         final_sp[0] = 0;
