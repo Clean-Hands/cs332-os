@@ -26,7 +26,7 @@ main(int argc, char *argv[])
 {
     // int fd, i;
 
-    printf("argc: %d\nargv: %s\nargv p: %p\n", argc, argv[0], argv);
+    printf("argc: %d\nargv: %s\nargv p: %p\n", argc, argv[1], argv);
 
     // char *argv_0 = (char *)0xFFFFFF7FFFFFDFC8;
     // char *argv_1 = (char *)0xFFFFFF7FFFFFDFE0;
