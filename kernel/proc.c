@@ -541,101 +541,58 @@ stack_setup(struct proc *p, char **argv, vaddr_t* ret_stackptr)
     // as you allocate things on stack, move stackptr downward.
     stackptr = kmap_p2v(paddr) + pg_size;
 
-    /* Your Code Here.  */
-    
-    // allocate space for fake return address, argc, argv
-    // remove following line when you actually set up the stack
-
-    
-    
-
-    int argc = 0; // = (*(&argv + 1) - argv)/sizeof(char *);
-
+    // calculate argc
+    int argc = 0;
     char **argv_copy = argv;
-
     while (argv_copy[0] != NULL) {
-
-        // stackptr -= sizeof(char *);
-
-
         argc++;
-        kprintf("argc: %d\n", argc);
-        // sp[0] = arg_copy[0];
-        // strcpy(sp[0], arg_copy[0]);
-
         argv_copy++;
     }
 
-    // uint64_t *user_argv[10]; // kmalloc
-    uint64_t *user_argv = kmalloc((sizeof(uint64_t *) * argc) + 1);
+    char *stack_strings;
 
-    if (argc > 1) {
-
-        char *sp;
-
-        argv_copy = argv;
-
-        // move stack pointer by argv bytes
-        int total_size = 0;
-        for (int i = 0; i < argc; i++) {
-            total_size += strlen(argv[i]) + 1;
-        }
-
-        sp = (char *)stackptr;
-        // sp = (uint64_t *)USTACK_ADDR(stackptr);
-        total_size += 8 - (total_size % 8); 
-        stackptr -= total_size * sizeof(char);
-
-        // kprintf("stackptr: %p\nsp: %p\n", stackptr, sp);
-
-        // char *argv_copy_i = argv_copy[i];
-
-        // fill in the space with chars
-        for (int i = 0; i < argc; i++) {
-            sp -= (strlen(argv[i]) + 1) * sizeof(char);
-            strcpy(sp, argv[i]);
-            kprintf("args: %s, %s\n", argv[i], sp);
-            // kprintf("argv[0]: %s\n", (char *)0xffffff7fffffdfe0);
-
-            // kprintf("args: %s\n", sp);
-            user_argv[i] = (uint64_t)sp;
-            kprintf("added 1 to user_argv\n");
-        }
-
-        sp = (char *)stackptr;
-        // sp = (uint64_t *)USTACK_ADDR(stackptr);
-        uint64_t *new_sp = (uint64_t *)stackptr;
-        stackptr -= (argc + 1) * sizeof(char *);        
-
-        // store the address of the start of each argument
-
-        new_sp -= 2;
-        for (int i = argc-1; i >= 0; i--) {
-            // sp = (uint64_t *)USTACK_ADDR(user_argv[i]);
-            vaddr_t string_location = (vaddr_t)user_argv[i];
-            *new_sp = USTACK_ADDR(string_location);
-
-            // kprintf("user_argv: %p\n", user_argv[i]);
-            // memcpy(sp, user_argv[i], sizeof(char *));
-            new_sp -= 1;
-        }
-
-        // T4.
-
-        uint64_t *sp2_value = (uint64_t *)USTACK_ADDR(stackptr);
-
-        stackptr -= 3 * sizeof(void *);
-
-        uint64_t *final_sp = (uint64_t *)stackptr;
-
-
-        final_sp[0] = 0;
-        final_sp[1] = argc;
-        final_sp[2] = (uint64_t)sp2_value;
-
-    } else {
-        stackptr -= 3 * sizeof(void *);
+    // move stack pointer by argv bytes
+    int total_size = 0;
+    for (int i = 0; i < argc; i++) {
+        total_size += strlen(argv[i]) + 1;
     }
+
+    stack_strings = (char *)stackptr;
+    total_size += 8 - (total_size % 8); 
+    stackptr -= total_size * sizeof(char);
+
+    // fill in the space with chars and save the char* addresses
+    uint64_t *user_argv = kmalloc((sizeof(uint64_t *) * argc) + 1);
+    for (int i = 0; i < argc; i++) {
+        stack_strings -= (strlen(argv[i]) + 1) * sizeof(char);
+        strcpy(stack_strings, argv[i]);
+
+        user_argv[i] = (uint64_t)stack_strings;
+    }
+
+    uint64_t *stack_argv = (uint64_t *)stackptr;
+    stackptr -= (argc + 1) * sizeof(char *);        
+
+    // store the address of the start of each argument
+    stack_argv -= 2;
+    for (int i = argc-1; i >= 0; i--) {
+        vaddr_t string_location = (vaddr_t)user_argv[i];
+        *stack_argv = USTACK_ADDR(string_location);
+        stack_argv -= 1;
+    }
+
+    // T4.
+
+    uint64_t *stack_argv_location = (uint64_t *)USTACK_ADDR(stackptr);
+
+    stackptr -= 3 * sizeof(void *);
+
+    uint64_t *sp = (uint64_t *)stackptr;
+
+
+    sp[0] = 0;
+    sp[1] = argc;
+    sp[2] = (uint64_t)stack_argv_location;
 
     // translates stackptr from kernel virtual address to user stack address
     *ret_stackptr = USTACK_ADDR(stackptr); 

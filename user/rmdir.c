@@ -38,7 +38,7 @@ main(int argc, char *argv[])
     //     cat(fd);
     //     close(fd);
     // }
-    int retval = rmdir("test");
+    int retval = rmdir(argv[1]);
     if (retval != ERR_OK) {
         printf("error: %d", retval);
         exit(retval);

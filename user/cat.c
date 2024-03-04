@@ -9,7 +9,6 @@ cat(int fd)
     int n;
 
    while((n = read(fd, buf, sizeof(buf))) > 0) {
-        printf("read %d\n", fd);
         if (write(1, buf, n) != n) {
             printf("cat: write error\n");
             exit(-1);
