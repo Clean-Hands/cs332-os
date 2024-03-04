@@ -38,7 +38,7 @@ main(int argc, char *argv[])
     //     cat(fd);
     //     close(fd);
     // }
-    mkdir("test");
+    mkdir(argv[1]);
     // mkdir("test/test2");
 
     exit(0);

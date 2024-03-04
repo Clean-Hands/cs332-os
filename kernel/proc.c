@@ -604,34 +604,23 @@ stack_setup(struct proc *p, char **argv, vaddr_t* ret_stackptr)
 
         sp = (char *)stackptr;
         // sp = (uint64_t *)USTACK_ADDR(stackptr);
-        stackptr -= (argc + 1) * sizeof(char *);
-
-        // uint64_t *sp_copy = sp;
-            // sp_copy++;
-
-        // while (sp_copy != NULL) {
-        //     kprintf("print all: %s\n", sp_copy);
-        //     sp_copy += (strlen((char *)sp_copy) + 1) * sizeof(char *);
-        // }
-
-        
+        uint64_t *new_sp = (uint64_t *)stackptr;
+        stackptr -= (argc + 1) * sizeof(char *);        
 
         // store the address of the start of each argument
 
-        sp -= 1;
-        sp = 0;
-        sp -= 1;
+        new_sp -= 2;
         for (int i = argc-1; i >= 0; i--) {
             // sp = (uint64_t *)USTACK_ADDR(user_argv[i]);
-            sp = (char *)USTACK_ADDR((vaddr_t)user_argv[i]);
+            vaddr_t string_location = (vaddr_t)user_argv[i];
+            *new_sp = USTACK_ADDR(string_location);
 
             // kprintf("user_argv: %p\n", user_argv[i]);
             // memcpy(sp, user_argv[i], sizeof(char *));
-            sp -= 1;
+            new_sp -= 1;
         }
 
         // T4.
-
 
         uint64_t *sp2_value = (uint64_t *)USTACK_ADDR(stackptr);
 
