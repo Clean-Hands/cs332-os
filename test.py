@@ -17,6 +17,7 @@ TIMEOUT = {
     3: 60,
     4: 60,
     5: 60,
+    6: 60,
 }
 
 test_weights = {
@@ -55,7 +56,11 @@ test_weights = {
     "5-cow-large": 14,
     "5-cow-multiple": 20,
     "5-cow-low-mem": 25,
-    "5-REDO-4": 21
+    "5-REDO-4": 21,
+    "6-argc-test": 15,
+    "6-argv-test": 15,
+    "6-cat-file": 30,
+    "6-ls-test": 30
 }
 
 autograder_root = "/autograder"

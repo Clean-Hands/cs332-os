@@ -541,6 +541,7 @@ stack_setup(struct proc *p, char **argv, vaddr_t* ret_stackptr)
     // as you allocate things on stack, move stackptr downward.
     stackptr = kmap_p2v(paddr) + pg_size;
 
+
     // calculate argc
     int argc = 0;
     char **argv_copy = argv;
@@ -549,15 +550,14 @@ stack_setup(struct proc *p, char **argv, vaddr_t* ret_stackptr)
         argv_copy++;
     }
 
-    char *stack_strings;
+    // save the location of where we are going to start putting the args onto the stack
+    char *stack_strings = (char *)stackptr;
 
     // move stack pointer by argv bytes
     int total_size = 0;
     for (int i = 0; i < argc; i++) {
         total_size += strlen(argv[i]) + 1;
     }
-
-    stack_strings = (char *)stackptr;
     total_size += 8 - (total_size % 8); 
     stackptr -= total_size * sizeof(char);
 
@@ -570,8 +570,9 @@ stack_setup(struct proc *p, char **argv, vaddr_t* ret_stackptr)
         user_argv[i] = (uint64_t)stack_strings;
     }
 
+    // prepare to put the address of each argument on the stack
     uint64_t *stack_argv = (uint64_t *)stackptr;
-    stackptr -= (argc + 1) * sizeof(char *);        
+    stackptr -= (argc + 1) * sizeof(char *);
 
     // store the address of the start of each argument
     stack_argv -= 2;
@@ -582,14 +583,13 @@ stack_setup(struct proc *p, char **argv, vaddr_t* ret_stackptr)
     }
 
     // T4.
-
+    
+    // calculate final stack values
     uint64_t *stack_argv_location = (uint64_t *)USTACK_ADDR(stackptr);
-
     stackptr -= 3 * sizeof(void *);
-
     uint64_t *sp = (uint64_t *)stackptr;
 
-
+    // put argc and argv onto the stack
     sp[0] = 0;
     sp[1] = argc;
     sp[2] = (uint64_t)stack_argv_location;
