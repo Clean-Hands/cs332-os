@@ -3,9 +3,8 @@
 
 int main(int argc, char const *argv[])
 {
-
     if (argc != 11) {
-        error(" argc-test: incorrect argc, value was: %d", argc);
+        error(" argv-test: incorrect argc, value was: %d", argc);
     }
 
     char *correct_argv[] = {"argv-test-helper", "these", "are", "some", "arguments", "that", "we", "want", "to", "pass", "in"};
